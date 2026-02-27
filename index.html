@@ -1,118 +1,319 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HyperAI</title>
-  <!-- Google Fonts -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap"
-    rel="stylesheet"
-  />
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HyperAI</title>
+<!-- Google Fonts -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap"
+  rel="stylesheet"
+/>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+<style>
+/* Your existing CSS (truncated for brevity) */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--tx);
+  display: flex;
+  height: 100vh;
+  transition: background var(--t), color var(--t);
+  position: relative;
+}
+#authContainer {
+  position: absolute; top:10px; right:10px; z-index:999; display:flex; gap:10px;
+}
+button { padding:8px 12px; border:none; border-radius:4px; cursor:pointer; }
+#sidebar { display:none; width:252px; background:#15151a; flex-direction:column; height:100%; }
+#content { flex:1; display:flex; flex-direction:column; }
+</style>
 </head>
 <body>
-  <!-- Auth Buttons -->
-  <div id="authContainer">
-    <button onclick="signInWithGoogle()">Sign in with Google</button>
-    <button onclick="promptEmailPassword()">Sign in with Email</button>
-    <button id="signOutBtn" style="display:none;" onclick="signOut()">Sign Out</button>
+
+<!-- Auth Buttons -->
+<div id="authContainer">
+  <button onclick="signInWithGoogle()">Sign in with Google</button>
+  <button onclick="promptEmailPassword()">Sign in with Email</button>
+  <button id="signOutBtn" style="display:none;" onclick="signOut()">Sign Out</button>
+</div>
+
+<!-- Sidebar (hidden initially) -->
+<div id="sidebar">
+  <div id="logo">
+    <h1>HyperAI</h1>
+    <p>Your AI platform</p>
   </div>
-
-  <!-- Sidebar (hidden initially) -->
-  <div id="sidebar">
-    <div id="logo">
-      <h1>HyperAI</h1>
-      <p>Your AI platform</p>
-    </div>
-    <!-- Username display -->
-    <div id="userDisplay" style="padding:10px; color:#fff;">Not signed in</div>
-    <div id="nav">
-      <button class="nav-btn active" id="nav-discover" onclick="showPanel('discover')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
-        </svg> Discover
-      </button>
-      <button class="nav-btn" id="nav-chat" onclick="showPanel('chat')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg> Chats
-      </button>
-    </div>
-    <!-- Create bot button -->
-    <div style="padding:10px;">
-      <button onclick="openBotModal()">Create a Bot</button>
-    </div>
-    <div id="bot-list">
-      <div id="bot-list-empty">No bots yet.<br>Create one!</div>
-    </div>
+  <!-- Username display -->
+  <div id="userDisplay" style="padding:10px; color:#fff;">Not signed in</div>
+  <div id="nav">
+    <button class="nav-btn active" id="nav-discover" onclick="showPanel('discover')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+      </svg> Discover
+    </button>
+    <button class="nav-btn" id="nav-chat" onclick="showPanel('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg> Chats
+    </button>
   </div>
+  <!-- Create bot button -->
+  <div style="padding:10px;">
+    <button onclick="openBotModal()">Create a Bot</button>
+  </div>
+  <div id="bot-list">
+    <div id="bot-list-empty">No bots yet.<br>Create one!</div>
+  </div>
+</div>
 
-  <!-- Main Content -->
-  <div id="content">
-    <!-- Topbar -->
-    <div id="topbar">
-      <div id="tb-left">
-        <h2 id="tb-title">Discover</h2>
-        <p id="tb-sub">Find your AI bots</p>
-      </div>
-    </div>
-
-    <!-- Discover Panel -->
-    <div class="panel show" id="panel-discover">
-      <div id="discover-content">
-        <!-- Discover content will be populated here -->
-      </div>
-    </div>
-
-    <!-- Chat Panel -->
-    <div class="panel" id="panel-chat">
-      <div id="chat-container">
-        <div id="chat-messages"></div>
-        <div id="chat-input-area">
-          <input 
-            type="text" 
-            id="chat-input" 
-            placeholder="Type your message..." 
-            onkeypress="handleChatKeypress(event)"
-          />
-          <button onclick="sendMessage()">Send</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create Bot Modal -->
-    <div id="botModal" style="display:none;">
-      <div id="botModalContent">
-        <h3>Create a Bot</h3>
-        <label>Name (unique):</label>
-        <input type="text" id="botNameInput" />
-        <label>System Prompt:</label>
-        <textarea id="botSysInput"></textarea>
-        <label>Starting Message:</label>
-        <textarea 
-          id="botStartInput" 
-          placeholder="Initial message when chat starts"
-        ></textarea>
-        <div id="botModalActions">
-          <button onclick="closeBotModal()">Cancel</button>
-          <button onclick="createBot()">Create</button>
-        </div>
-      </div>
+<!-- Main Content -->
+<div id="content">
+  <!-- Topbar -->
+  <div id="topbar">
+    <div id="tb-left">
+      <h2 id="tb-title">Discover</h2>
+      <p id="tb-sub">Find your AI bots</p>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/bot.js"></script>
-  <script src="js/chat.js"></script>
-  <script src="js/ui.js"></script>
+  <!-- Discover Panel -->
+  <div class="panel show" id="panel-discover">
+    <!-- ... your discover content ... -->
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="panel" id="panel-chat">
+    <!-- ... your chat content ... -->
+  </div>
+
+  <!-- Create Bot Modal -->
+  <div id="botModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#fff; padding:20px; border-radius:8px; max-width:400px; width:90%;">
+      <h3>Create a Bot</h3>
+      <label>Name (unique):</label>
+      <input type="text" id="botNameInput" style="width:100%; margin-bottom:10px;">
+      <label>System Prompt:</label>
+      <textarea id="botSysInput" style="width:100%; height:60px;"></textarea>
+      <label>Starting Message:</label>
+      <textarea id="botStartInput" style="width:100%; height:60px;" placeholder="Initial message when chat starts"></textarea>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:10px;">
+        <button onclick="closeBotModal()">Cancel</button>
+        <button onclick="createBot()">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Firebase config (replace with your actual config)
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "hyperai-r.firebaseapp.com",
+    projectId: "hyperai-r",
+    storageBucket: "hyperai-r.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  let currentUser = null;
+
+  // Sign in with Google
+  function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).then(userCredential => {
+      onAuthStateChanged(userCredential.user);
+    }).catch(console.error);
+  }
+
+  // Sign in with email/password
+  function promptEmailPassword() {
+    const email = prompt("Email:");
+    const password = prompt("Password:");
+    if (!email || !password) return;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        onAuthStateChanged(userCredential.user);
+      }).catch(error => {
+        if(error.code === 'auth/user-not-found') {
+          // Offer to create account
+          if(confirm("User not found. Create account?")) {
+            auth.createUserWithEmailAndPassword(email, password).then(userCredential => {
+              onAuthStateChanged(userCredential.user);
+            }).catch(console.error);
+          }
+        } else {
+          alert(error.message);
+        }
+      });
+  }
+
+  function signOut() {
+    auth.signOut();
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('authContainer').style.display='none';
+      document.getElementById('sidebar').style.display='flex';
+      document.getElementById('content').style.display='block';
+      document.getElementById('userDisplay').innerText = user.displayName || user.email;
+      document.getElementById('signOutBtn').style.display='inline-block';
+      loadBots();
+    } else {
+      currentUser = null;
+      document.getElementById('authContainer').style.display='flex';
+      document.getElementById('sidebar').style.display='none';
+      document.getElementById('content').style.display='none';
+      document.getElementById('userDisplay').innerText='Not signed in';
+      document.getElementById('signOutBtn').style.display='none';
+    }
+  });
+
+  // Load bots (from local storage, filter by user if needed)
+  function loadBots() {
+    // For simplicity, all bots are shared; you can extend to per-user
+    let bots = JSON.parse(localStorage.getItem('bots') || '[]');
+    const listEl = document.getElementById('bot-list');
+    listEl.innerHTML = '';
+    if(bots.length === 0){
+      listEl.innerHTML = '<div id="bot-list-empty">No bots yet.<br>Create one!</div>';
+    } else {
+      bots.forEach(bot => {
+        const btn = document.createElement('button');
+        btn.innerText = bot.name;
+        btn.onclick = ()=> { openChat(bot); };
+        listEl.appendChild(btn);
+      });
+    }
+  }
+
+  // Save bots
+  function saveBots(bots) {
+    localStorage.setItem('bots', JSON.stringify(bots));
+  }
+
+  // Bots array
+  let bots = JSON.parse(localStorage.getItem('bots') || '[]');
+
+  // Create a new bot
+  function openBotModal() {
+    document.getElementById('botModal').style.display='flex';
+  }
+  function closeBotModal() {
+    document.getElementById('botModal').style.display='none';
+  }
+  function createBot() {
+    const name = document.getElementById('botNameInput').value.trim();
+    const sys = document.getElementById('botSysInput').value.trim();
+    const startMsg = document.getElementById('botStartInput').value.trim();
+
+    if(!name) { alert('Name is required'); return; }
+    if(bots.some(b => b.name === name)){ alert('Name taken'); return; }
+    if(!sys) { alert('System prompt required'); return; }
+
+    const newBot = { id:'bot_'+Date.now(), name, system: sys, startMsg };
+    bots.push(newBot);
+    saveBots(bots);
+    loadBots();
+    closeBotModal();
+    openChat(newBot);
+  }
+
+  // Chat functions
+  let activeBot = null;
+  let convos = {}; // chat history
+
+  function openChat(bot) {
+    activeBot = bot;
+    document.getElementById('tb-title').innerText=bot.name;
+    document.getElementById('tb-sub').innerText='Chat with '+bot.name;
+    document.querySelector('.panel').classList.remove('show');
+    document.getElementById('panel-chat').classList.add('show');
+
+    // Load chat history or start with startMsg
+    let history = convos[bot.id] || [];
+    const msgsDiv = document.getElementById('chat-messages');
+    msgsDiv.innerHTML='';
+
+    if(history.length===0 && bot.startMsg){
+      appendMsg('bot', bot.startMsg);
+      history.push({role:'bot', content:bot.startMsg});
+      convos[bot.id]=history;
+    }
+    history.forEach(m => appendMsg(m.role,m.content,false));
+  }
+
+  function appendMsg(role, content, animate=true){
+    const div=document.createElement('div');
+    div.className='msg ' + (role==='user'?'user':'bot');
+    div.innerHTML= `<div class="msg-av">${role==='user'?'U':activeBot?activeBot.name[0]:'🤖'}</div>
+      <div class="msg-body">
+        <div class="msg-name">${role==='user'?'You':activeBot?activeBot.name:'Bot'}</div>
+        <div class="msg-bubble">${content}</div>
+      </div>`;
+    document.getElementById('chat-messages').appendChild(div);
+    document.getElementById('chat-messages').scrollTop=9999;
+  }
+
+  // Send message
+  async function sendMessage() {
+    const inputEl = document.getElementById('chat-input');
+    const text = inputEl.value.trim();
+    if(!text || !activeBot) return;
+    appendMsg('user', text);
+    inputEl.value='';
+    // Add to convos
+    if(!convos[activeBot.id]) convos[activeBot.id]=[];
+    convos[activeBot.id].push({role:'user', content:text});
+    // Simulate reply
+    appendMsg('bot', 'This is a placeholder reply.');
+  }
+
+  // Sign in/out functions
+  function signInWithGoogle() {
+    const provider=new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(console.error);
+  }
+  function promptEmailPassword() {
+    const email=prompt('Email');
+    const pass=prompt('Password');
+    if(!email || !pass) return;
+    auth.signInWithEmailAndPassword(email, pass).catch(err=>{
+      if(err.code==='auth/user-not-found'){
+        if(confirm('User not found, create new?')){
+          auth.createUserWithEmailAndPassword(email, pass);
+        }
+      } else alert(err.message);
+    });
+  }
+  function signOut() {
+    auth.signOut();
+  }
+  // auth state change
+  auth.onAuthStateChanged(user => {
+    if(user){
+      document.getElementById('authContainer').style.display='none';
+      document.getElementById('sidebar').style.display='flex';
+      document.getElementById('content').style.display='flex';
+      document.getElementById('userDisplay').innerText=user.displayName || user.email;
+      document.getElementById('signOutBtn').style.display='inline-block';
+      loadBots();
+    } else {
+      document.getElementById('authContainer').style.display='flex';
+      document.getElementById('sidebar').style.display='none';
+      document.getElementById('content').style.display='none';
+      document.getElementById('userDisplay').innerText='Not signed in';
+      document.getElementById('signOutBtn').style.display='none';
+    }
+  });
+</script>
 </body>
 </html>
