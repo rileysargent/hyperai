@@ -1,20 +1,43 @@
-// Firebase authentication code
+// auth.js
 
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+// Authentication state management
+let isAuthenticated = false;
+let user = null;
 
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+function setAuthState(authState, userData) {
+    isAuthenticated = authState;
+    user = userData;
+    updateUI();
+}
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Google sign-in function
+function googleSignIn() {
+    // Logic for Google sign-in
+    // Simulating successful sign-in
+    const userData = { name: 'Google User', email: 'user@example.com' };
+    setAuthState(true, userData);
+}
 
-export const signIn = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-};
+// Email/password authentication
+async function emailSignIn(email, password) {
+    // Simulate API call for email/password sign-in
+    if (email === 'user@example.com' && password === 'password123') {
+        const userData = { name: 'Email User', email: email };
+        setAuthState(true, userData);
+    } else {
+        alert('Invalid email or password');
+    }
+}
+
+// Update UI based on authentication state
+function updateUI() {
+    const authStatus = document.getElementById('auth-status');
+    if (isAuthenticated) {
+        authStatus.innerHTML = `Logged in as ${user.name}`;
+    } else {
+        authStatus.innerHTML = 'Not logged in';
+    }
+}
+
+// Export functions for use in other modules
+export { googleSignIn, emailSignIn, setAuthState };
